@@ -14,11 +14,26 @@ except ImportError:
 
 @click.group()
 def cli():
-    pass
+  '''Manage Kubernetes(k8s) Resources'''
+  pass
+
+@click.group()
+def create():
+  '''Create k8s Resources'''    
+  print("create sys.argv:", sys.argv)
+
+@click.group()
+def update():
+  '''Update k8s Resources'''    
+  click.echo('Update k8s Resources')
+
+@click.group()
+def delete():
+  '''Delete k8s Resources'''    
+  click.echo('Delete k8s Resources')
 
 def initialize(kubeconfig):
   setClusterContext(kubeconfig)
-  #v1 = k8s.client.CoreV1Api()
   v1 = k8s.client.AppsV1Api()
   return v1
 
@@ -55,54 +70,65 @@ def create_deployment(v1_api, deployment, ns):
       body=deployment,
       namespace=ns)
   except ApiException as e:
-    click.echo('Exception when calling create_namespaced_deployment')
     click.echo('EXCEPTION: %s' % e)
-    return
+    sys.exit(-1)
   print("Deployment created. status='%s'" % str(api_response.status))
 
 def update_deployment(v1_api, deployment, dep_name, new_image, ns):
   '''Update deployment'''
-  click.echo('Update container image')
+  click.echo('Update container image deployment (%s)', deployment)
   deployment.spec.template.spec.containers[0].image = new_image
-  click.echo('Update the deployment')
-  api_response = v1_api.patch_namespaced_deployment(
-    name=dep_name,
-    namespace=ns,
-    body=deployment)
+  click.echo('Updating the deployment')
+  try:
+    api_response = v1_api.patch_namespaced_deployment(
+      name=dep_name,
+      namespace=ns,
+      body=deployment)
+  except ApiException as e:
+    click.echo('EXCEPTION: %s' % e)
+    sys.exit(-1)
+
   print("Deployment updated. status='%s'" % str(api_response.status))
 
-@click.command()
-@click.option('--name', '-n',help='k8s deployment name')
-@click.option('--namespace', help='namespace for deployment')
 def delete_deployment(v1_api, dname, ns):
   '''Delete deployment'''
   click.echo('Deleting deployment')
-  api_response = v1_api.delete_namespaced_deployment(
-    name=dname,
-    namespace=ns,
-    body=k8s.client.V1DeleteOptions(
-      propagation_policy='Foreground',
-      grace_period_seconds=5))
+  try:
+    api_response = v1_api.delete_namespaced_deployment(
+      name=dname,
+      namespace=ns,
+      body=k8s.client.V1DeleteOptions(
+        propagation_policy='Foreground',
+        grace_period_seconds=5))
+  except ApiException as e:
+    click.echo('EXCEPTION: %s' % e)
+    sys.exit(-1)
+
   print("Deployment deleted. status='%s'" % str(api_response.status))
 
-@click.group()
-#@click.command()
+@click.command()
 @click.option('--name', '-n',help='k8s deployment name')
 @click.option('--image','-i',help='docker image to use')
 @click.option('--namespace', help='namespace for deployment')
 @click.option('--kube-config', '-k', type=click.File('r'), help='kubeconfig file')
 def deployment(name, image, namespace, kube_config):
+  print("deployment sys.argv:", sys.argv)
   '''Deployment operations'''
   v1 = initialize(kube_config)
   deployment = create_deployment_object(name, image)
 
   if not namespace:
     namespace = "default"
-  create_deployment(v1, deployment, namespace)
 
-  update_deployment(v1, deployment, name, image, namespace)
-
-  delete_deployment(v1, name, namespace)
+  if sys.argv[1] == "create":
+    create_deployment(v1, deployment, namespace)
+  elif sys.argv[1] == "update":
+    update_deployment(v1, deployment, name, image, namespace)
+  elif sys.argv[1] == "delete":
+    delete_deployment(v1, name, namespace)
+  else:
+    click.echo("Unknown Command!")
+    sys.exit(-1)
 
 @click.command()
 def configmap():
@@ -113,22 +139,37 @@ def secret():
   click.echo('secret....')
 
 @click.command()
+def pod():
+  click.echo('secret....')
+
+@click.command()
 @click.option('--set-context', nargs = 0, help='set cluster context')
 @click.option('--get-context', nargs = 0, help='get cluster context')
 @click.option('--kube-config', '-k', type=click.File('r'), help='kubeconfig file')
 def cluster(name,image):
   click.echo('cluster....')
-  print("sys.arg", sys.argv)
+  print("cluster sys.argv:", sys.argv)
   click.echo('sc=%s' % set_context)
   click.echo('gc=%s' % get_context)
   
-cli.add_command(deployment)
-cli.add_command(configmap)
-cli.add_command(secret)
-cli.add_command(cluster)
-deployment.add_command(create)
-deployment.add_command(update)
-deployment.add_command(delete)
+cli.add_command(create)
+cli.add_command(update)
+cli.add_command(delete)
+
+create.add_command(deployment)
+create.add_command(configmap)
+create.add_command(secret)
+create.add_command(pod)
+
+update.add_command(deployment)
+update.add_command(configmap)
+update.add_command(secret)
+update.add_command(pod)
+
+delete.add_command(deployment)
+delete.add_command(configmap)
+delete.add_command(secret)
+delete.add_command(pod)
 
 def setClusterContext(kubeconfig):
   '''Loads authentication and cluster information from kube-config file'''
@@ -136,6 +177,7 @@ def setClusterContext(kubeconfig):
     click.echo('Using kubeconfig file: %s' % kubeconfig)
     k8s.config.load_kube_config(config_file=kubeconfig)
   else:
+    click.echo('Using kubeconfig file from default location')
     k8s.config.load_kube_config(config_file=None)
 
 def getClusterContext(kubeconfig):
