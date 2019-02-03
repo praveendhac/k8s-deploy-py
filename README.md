@@ -46,4 +46,4 @@ aidt-deployment-56cf96b4fd-vrwvb   1/1     Running   0          20s
 
 ## References
 - https://github.com/kubernetes-client/python/blob/master/kubernetes/README.md
-- 
+- https://click.palletsprojects.com/en/7.x/ 
