@@ -167,7 +167,7 @@ def create_configmap_object(cfg_map_name, cfg_map_file, ns):
   configmap = k8s.client.V1ConfigMap(
     api_version="v1",
     kind="ConfigMap",
-    data=dict(test=cfg_map_content),
+    data={"config.json": cfg_map_content},
     metadata=metadata
   )
   return configmap
@@ -222,7 +222,7 @@ def create_secret(core_v1_api, sname, ns, secret_type):
   except ApiException as e:
     click.echo('EXCEPTION: %s' % e)
     sys.exit(-1)
-  print("Deployment created. status='%s'" % str(api_response.status))
+  print("Deployment created. status='%s'" % str(api_response))
 
 def delete_secret(core_v1_api, sname, ns):
   '''Delete Secret'''

@@ -6,7 +6,7 @@ Use Kubernetes library for Python to deploy and check a basic application (of ou
 This application should deploy at least a pod/deployment and a configMap/secret.
 
 ## Usage
-- Create Deployment
+### Create Deployment
 ```
 $ python src/k8s-deploy.py create deployment -n aidt-deployment -i nginx:1.14.2 --namespace aidt
 create sys.argv: ['src/k8s-deploy.py', 'create', 'deployment', '-n', 'aidt-deployment', '-i', 'nginx:1.14.2', '--namespace', 'aidt']
@@ -22,7 +22,7 @@ Deployment created. status='{'available_replicas': None,
  'unavailable_replicas': None,
  'updated_replicas': None}'
 ```
-- Delete Deployment
+### Delete Deployment
 ```
 $ python src/k8s-deploy.py delete deployment -n aidt-deployment --namespace aidt
 Delete k8s Resources
@@ -31,7 +31,58 @@ Using kubeconfig file from default location
 Deleting deployment
 Deployment deleted. status='{'observedGeneration': 1, 'replicas': 3, 'updatedReplicas': 3, 'readyReplicas': 3, 'availableReplicas': 3, 'conditions': [{'type': 'Available', 'status': 'True', 'lastUpdateTime': '2019-02-03T05:15:16Z', 'lastTransitionTime': '2019-02-03T05:15:16Z', 'reason': 'MinimumReplicasAvailable', 'message': 'Deployment has minimum availability.'}, {'type': 'Progressing', 'status': 'True', 'lastUpdateTime': '2019-02-03T05:15:16Z', 'lastTransitionTime': '2019-02-03T05:14:59Z', 'reason': 'NewReplicaSetAvailable', 'message': 'ReplicaSet "aidt-deployment-56cf96b4fd" has successfully progressed.'}]}'
 ```
-- Check Status
+### Create ConfigMap
+```
+$ python src/k8s-deploy.py create configmap -n pd-aidt-configmap --namespace aidt --config-file config/pd-config.json
+create sys.argv: ['src/k8s-deploy.py', 'create', 'configmap', '-n', 'pd-aidt-configmap', '--namespace', 'aidt', '--config-file', 'config/pd-config.json']
+Using kubeconfig file from default location
+Configure ConfigMap metadata
+config filename for configmap: config/pd-config.json
+Creating Configmap
+ConfigMap created status='{'api_version': 'v1',
+ 'binary_data': None,
+ 'data': {'config.json': '{\n'
+                         "  'fname': 'Praveen',\n"
+                         "  'lname': 'D',\n"
+                         "  'profession': 'Security Architect',\n"
+                         "  'description': 'Passionate Information Security "
+                         "Professional'\n"
+                         '}\n'},
+ 'kind': 'ConfigMap',
+ 'metadata': {'annotations': {'app': 'pd-aidt-test', 'person': 'praveend'},
+              'cluster_name': None,
+              'creation_timestamp': datetime.datetime(2019, 2, 4, 22, 25, 14, tzinfo=tzutc()),
+              'deletion_grace_period_seconds': None,
+              'deletion_timestamp': None,
+              'finalizers': None,
+              'generate_name': None,
+              'generation': None,
+              'initializers': None,
+              'labels': {'app': 'pd-aidt-test', 'person': 'praveend'},
+              'name': 'pd-aidt-configmap',
+              'namespace': 'aidt',
+              'owner_references': None,
+              'resource_version': '535901',
+              'self_link': '/api/v1/namespaces/aidt/configmaps/pd-aidt-configmap',
+              'uid': 'be2a9492-28cb-11e9-b82d-080027d6d630'}}'
+```
+
+### Create Secret
+```
+$ python src/k8s-deploy.py create secret -n pd-opaq-secret --namespace aidt --secret-type opaque
+create sys.argv: ['src/k8s-deploy.py', 'create', 'secret', '-n', 'pd-opaq-secret', '--namespace', 'aidt', '--secret-type', 'opaque']
+Using kubeconfig file from default location
+Creating Secret
+{'api_version': 'v1',
+ 'data': {'authn': 'cHJhdmVlbjpEYXJzaGFuYW0xMVMzY3JldA==',
+          'password': 'RGFyc2hhbmFtMTFTM2NyZXQ=',
+          'token': 'MTEtMjItMzMtNDQ=',
+          'username': 'cHJhdmVlbg=='},
+ 'kind': 'Secret',
+ 'metadata': {'annotations': None,
+....
+```
+### Check Status
 ```
 $ kubectl get deployments -n aidt
 NAME              DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
@@ -42,6 +93,12 @@ NAME                               READY   STATUS    RESTARTS   AGE
 aidt-deployment-56cf96b4fd-5d2wx   1/1     Running   0          20s
 aidt-deployment-56cf96b4fd-6qbn6   1/1     Running   0          20s
 aidt-deployment-56cf96b4fd-vrwvb   1/1     Running   0          20s
+
+$ kubectl get secret -n aidt
+NAME                  TYPE                                  DATA   AGE
+default-token-vrwzr   kubernetes.io/service-account-token   3      1d
+dpr-secret            kubernetes.io/dockerconfigjson        1      1d
+pd-opaq-secret        opaque                                4      44s
 ```
 
 ## References
