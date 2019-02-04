@@ -55,11 +55,12 @@ def create_deployment_object(dname,image):
     name="nginx",
     image=image,
     ports=[k8s.client.V1ContainerPort(container_port=80)],
-    image_pull_policy="Always")
+    image_pull_policy="Always",
+    volume_mounts=[k8s.client.V1VolumeMount(mount_path="/etc/config/config.json",sub_path="config.json", name="pd-configmap-volume-name")])
   # Create and configurate a spec section
   template = k8s.client.V1PodTemplateSpec(
     metadata= k8s.client.V1ObjectMeta(labels={"app": "nginx"}),
-    spec=k8s.client.V1PodSpec(containers=[container]))
+    spec=k8s.client.V1PodSpec(containers=[container],volumes=[k8s.client.V1Volume(name="pd-configmap-volume-name", config_map=k8s.client.V1ConfigMapVolumeSource(name="pd-aidt-configmap", default_mode=420))]))
   # Create the specification of deployment
   spec = k8s.client.V1DeploymentSpec(
     replicas=3,
