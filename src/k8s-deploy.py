@@ -160,9 +160,8 @@ def create_configmap_object(cfg_map_name, cfg_map_file, ns):
 
   # Get File Content for ConfigMap
   click.echo('config filename for configmap: %s' % cfg_map_file)
-  #with open(cfg_map_file, 'r') as cfgmap_fh:
-  #  cfg_map_content = cfgmap_fh.read()
-  #cfg_map_content = cfg_map_file.read()
+  with open(cfg_map_file, 'r') as cfgmap_fh:
+    cfg_map_content = cfgmap_fh.read()
 
   # Instantiate configmap object
   configmap = k8s.client.V1ConfigMap(
@@ -182,6 +181,7 @@ def create_configmap(core_v1_api, configmap, name, ns):
   except ApiException as e:
     click.echo('EXCEPTION: %s' % e)
     sys.exit(-1)
+  print("ConfigMap created status='%s'" % str(api_response))
 
 def delete_configmap(name, namespace):
   '''Delete Configmap'''
@@ -190,14 +190,10 @@ def delete_configmap(name, namespace):
 @click.command()
 @click.option('--name', '-n',help='k8s configmap name')
 @click.option('--namespace', 'ns', help='namespace for configmap creation')
-#@click.option('--config-file', '-f', type=click.File('r'), help='Configuration file')
 @click.option('--config-file', 'cnf_file', help='Configuration file')
 @click.option('--kube-config', '-k', type=click.File('r'), help='kubeconfig file')
 def configmap(name, ns, cnf_file, kube_config):
   '''Operations on Kubernetes ConfigMap Resource'''
-  click.echo('sys.argv:', sys.argv)
-  click.echo(cnf_file)
-  click.echo('PRAVEEND:', sys.argv)
   core_v1_api = initializeCoreV1Api(kube_config)
   configmap_obj = create_configmap_object(name, cnf_file, ns)
 
@@ -226,7 +222,7 @@ def create_secret(core_v1_api, sname, ns, secret_type):
   except ApiException as e:
     click.echo('EXCEPTION: %s' % e)
     sys.exit(-1)
-
+  print("Deployment created. status='%s'" % str(api_response.status))
 
 def delete_secret(core_v1_api, sname, ns):
   '''Delete Secret'''
