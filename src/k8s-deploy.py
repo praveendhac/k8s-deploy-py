@@ -6,11 +6,13 @@ try:
   from kubernetes.client.rest import ApiException
 except ImportError:
   print("kubernetes package not installed, run \"pip3 install kubernetes\"")
+  sys.exit(-1)
 
 try:
   import click
 except ImportError:
   print("click package not installed, run \"pip3 install click\"")
+  sys.exit(-1)
 
 @click.group()
 def cli():
