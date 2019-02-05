@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 
 import sys
-sys.path.append('../src')
-import src.k8s-deploy
+import os
+import click
+
+#sys.path.append('../src')
+sys.path.append(os.path.abspath('../src/'))
+#import k8s-deploy
+k8sdeploy = __import__("k8s-deploy")
 
 try:
   import kubernetes as k8s
@@ -36,42 +41,48 @@ def test_get_namespaces():
   kubeconfig = ""
   corev1api = initializeCoreV1Api(kubeconfig)
   try: 
-    api_response = api_instance.list_namespace(include_uninitialized=include_uninitialized, pretty=pretty, _continue=_continue, field_selector=field_selector, label_selector=label_selector, limit=limit, resource_version=resource_version, timeout_seconds=timeout_seconds, watch=watch)
+    #api_response = corev1api.list_namespace(include_uninitialized=include_uninitialized, pretty=pretty, _continue=_continue, field_selector=field_selector, label_selector=label_selector, limit=limit, resource_version=resource_version, timeout_seconds=timeout_seconds, watch=watch)
+    api_response = corev1api.list_namespace()
   except ApiException as e:
     print("Exception when calling CoreV1Api->list_namespace: %s\n" % e)
+  print("ns:", api_response)
 
 test_get_namespaces()
 
-api_server()
+def api_server():
   '''successfully get API server'''
 
-api_v1()
+def api_v1():
   '''basic check'''
 
-is_rbac_enabled()
+def is_rbac_enabled():
   '''RBAC check'''
 
-check_nodes()
+def check_nodes():
+  '''check node'''
 
-check_node_pressures()
+def check_node_pressures():
+  '''check node pressure'''
 
-check_control_plane()
+def check_control_plane():
   '''all control plane pods'''
-check_etcd()
+def check_etcd():
   '''check etcd pod'''
 
-check_pods()
+def check_pods():
   '''all pos in all namespaces'''
   ''' or pod status'''
 
-check_deployments()
+def check_deployments():
+  '''check deployments'''
 
-check_services()
+def check_services():
+  '''check services'''
 
-check_service_rechability()
+def check_service_rechability():
   '''port-forward'''
 
-detect_nonrunning_pods()
+def detect_nonrunning_pods():
   '''pods not running'''
 
 
