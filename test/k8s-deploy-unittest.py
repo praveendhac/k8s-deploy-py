@@ -40,6 +40,8 @@ def test_get_namespaces():
   except ApiException as e:
     print("Exception when calling CoreV1Api->list_namespace: %s\n" % e)
 
+test_get_namespaces()
+
 api_server()
   '''successfully get API server'''
 
