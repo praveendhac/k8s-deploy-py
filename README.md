@@ -5,6 +5,23 @@ Kubernetes deployment using k8s Python API
 Use Kubernetes library for Python to deploy and check a basic application (of our choice) onto a Kubernetes cluster (we can use Minikube or a cloud service for testing/demoing). 
 This application should deploy at least a pod/deployment and a configMap/secret.
 
+## Prerequisites
+- python 3.x
+- kubectl
+- minikube/kubernetes cluster
+
+## Environment
+```
+virtualenv --version
+mkdir vir-env
+virtualenv vir-env/k8s-deploy
+cd vir-env/k8s-deploy/bin/
+source activate
+$ which python
+/Users/pdarshanam/REPOS/PRAVEENDHAC/k8s-deploy-py/vir-env/k8s-deploy/bin/python
+pip3 install requirements.txt
+```
+
 ## Usage
 ### Create Deployment
 ```
