@@ -1,4 +1,4 @@
-# k8s-deploy-py
+# k8s_deploy.py
 Kubernetes deployment using k8s Python API
 
 ## Problem
@@ -18,16 +18,16 @@ virtualenv vir-env/k8s-deploy
 cd vir-env/k8s-deploy/bin/
 source activate
 $ which python
-/Users/pdarshanam/REPOS/PRAVEENDHAC/k8s-deploy-py/vir-env/k8s-deploy/bin/python
+/Users/pdarshanam/REPOS/PRAVEENDHAC/k8s_deploy.py/vir-env/k8s-deploy/bin/python
 pip3 install requirements.txt
 ```
 
 ## Usage
 ### Create Deployment
 ```
-$ python src/k8s-deploy.py create deployment -n aidt-deployment -i nginx:1.14.2 --namespace aidt
-create sys.argv: ['src/k8s-deploy.py', 'create', 'deployment', '-n', 'aidt-deployment', '-i', 'nginx:1.14.2', '--namespace', 'aidt']
-deployment sys.argv: ['src/k8s-deploy.py', 'create', 'deployment', '-n', 'aidt-deployment', '-i', 'nginx:1.14.2', '--namespace', 'aidt']
+$ python src/k8s_deploy.py create deployment -n aidt-deployment -i nginx:1.14.2 --namespace aidt
+create sys.argv: ['src/k8s_deploy.py', 'create', 'deployment', '-n', 'aidt-deployment', '-i', 'nginx:1.14.2', '--namespace', 'aidt']
+deployment sys.argv: ['src/k8s_deploy.py', 'create', 'deployment', '-n', 'aidt-deployment', '-i', 'nginx:1.14.2', '--namespace', 'aidt']
 Using kubeconfig file from default location
 Create deployement
 Deployment created. status='{'available_replicas': None,
@@ -41,17 +41,17 @@ Deployment created. status='{'available_replicas': None,
 ```
 ### Delete Deployment
 ```
-$ python src/k8s-deploy.py delete deployment -n aidt-deployment --namespace aidt
+$ python src/k8s_deploy.py delete deployment -n aidt-deployment --namespace aidt
 Delete k8s Resources
-deployment sys.argv: ['src/k8s-deploy.py', 'delete', 'deployment', '-n', 'aidt-deployment', '--namespace', 'aidt']
+deployment sys.argv: ['src/k8s_deploy.py', 'delete', 'deployment', '-n', 'aidt-deployment', '--namespace', 'aidt']
 Using kubeconfig file from default location
 Deleting deployment
 Deployment deleted. status='{'observedGeneration': 1, 'replicas': 3, 'updatedReplicas': 3, 'readyReplicas': 3, 'availableReplicas': 3, 'conditions': [{'type': 'Available', 'status': 'True', 'lastUpdateTime': '2019-02-03T05:15:16Z', 'lastTransitionTime': '2019-02-03T05:15:16Z', 'reason': 'MinimumReplicasAvailable', 'message': 'Deployment has minimum availability.'}, {'type': 'Progressing', 'status': 'True', 'lastUpdateTime': '2019-02-03T05:15:16Z', 'lastTransitionTime': '2019-02-03T05:14:59Z', 'reason': 'NewReplicaSetAvailable', 'message': 'ReplicaSet "aidt-deployment-56cf96b4fd" has successfully progressed.'}]}'
 ```
 ### Create ConfigMap
 ```
-$ python src/k8s-deploy.py create configmap -n pd-aidt-configmap --namespace aidt --config-file config/pd-config.json
-create sys.argv: ['src/k8s-deploy.py', 'create', 'configmap', '-n', 'pd-aidt-configmap', '--namespace', 'aidt', '--config-file', 'config/pd-config.json']
+$ python src/k8s_deploy.py create configmap -n pd-aidt-configmap --namespace aidt --config-file config/pd-config.json
+create sys.argv: ['src/k8s_deploy.py', 'create', 'configmap', '-n', 'pd-aidt-configmap', '--namespace', 'aidt', '--config-file', 'config/pd-config.json']
 Using kubeconfig file from default location
 Configure ConfigMap metadata
 config filename for configmap: config/pd-config.json
@@ -86,8 +86,8 @@ ConfigMap created status='{'api_version': 'v1',
 
 ### Create Secret
 ```
-$ python src/k8s-deploy.py create secret -n pd-opaq-secret --namespace aidt --secret-type opaque
-create sys.argv: ['src/k8s-deploy.py', 'create', 'secret', '-n', 'pd-opaq-secret', '--namespace', 'aidt', '--secret-type', 'opaque']
+$ python src/k8s_deploy.py create secret -n pd-opaq-secret --namespace aidt --secret-type opaque
+create sys.argv: ['src/k8s_deploy.py', 'create', 'secret', '-n', 'pd-opaq-secret', '--namespace', 'aidt', '--secret-type', 'opaque']
 Using kubeconfig file from default location
 Creating Secret
 {'api_version': 'v1',
@@ -118,6 +118,11 @@ dpr-secret            kubernetes.io/dockerconfigjson        1      1d
 pd-opaq-secret        opaque                                4      44s
 ```
 
+## Testing
+```
+cd test
+python3 -m pytest k8s-deploy-unittest.py
+```
 ## References
 - https://github.com/kubernetes-client/python/blob/master/kubernetes/README.md
 - https://click.palletsprojects.com/en/7.x/ 

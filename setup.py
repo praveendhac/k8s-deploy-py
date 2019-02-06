@@ -17,6 +17,6 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        k8sdeploy=src.k8s-deploy:deployment
+        k8sdeploy=src.k8s_deploy:deployment
     ''',
 )
