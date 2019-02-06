@@ -1,5 +1,5 @@
-# k8s_deploy.py
-Kubernetes deployment using k8s Python API
+# k8s_deploy
+Kubernetes deployment using Python Kubernetes API
 
 ## Problem
 Use Kubernetes library for Python to deploy and check a basic application (of our choice) onto a Kubernetes cluster (we can use Minikube or a cloud service for testing/demoing). 
@@ -121,7 +121,7 @@ pd-opaq-secret        opaque                                4      44s
 ## Testing
 ```
 cd test
-python3 -m pytest k8s-deploy-unittest.py
+python3 -m pytest k8s-deploy-unittest.py        # or py.test -v
 ```
 ## References
 - https://github.com/kubernetes-client/python/blob/master/kubernetes/README.md
