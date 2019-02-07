@@ -30,6 +30,14 @@ def getCoreApi():
   coreapi = k8s.client.CoreApi()
   return coreapi
 
+def getAppsV1Api():
+  k8s.config.load_kube_config()
+  appsv1api = k8s.client.AppsV1Api()
+  return appsv1api
+
+# few test cases checks resources in test namespace
+ns = "aidt"
+
 def getRbacAuthorizationApi():
   k8s.config.load_kube_config()
   rbacauthorizationapi = k8s.client.RbacAuthorizationV1Api()
@@ -63,7 +71,7 @@ def test_api_server():
 
 def test_api_v1_resources():
   '''basic check'''
-  print("Testcase: api_v1")
+  print("Testcase: api_v1_resource")
   corev1api = getCoreV1Api()
   try:
     api_resp = corev1api.get_api_resources().to_dict()
@@ -94,7 +102,6 @@ def test_check_nodes():
   # check atleast one node is present
   first_node = ret['items'][0]['metadata']['name']
   assert first_node
-test_check_nodes()
 
 def test_check_node_health():
   '''check node pressure'''
@@ -119,13 +126,26 @@ def test_check_node_health():
 
 def test_check_control_plane():
   '''all control plane pods'''
+  not_running_pods = []
   print("Testcase: check_control_plane")
   corev1api = getCoreV1Api()
+  resp = corev1api.list_namespaced_pod('kube-system')
+  for i in resp.items:
+    pod_status = ("%s\t%s\t%s\t%s" % (i.status.pod_ip, i.status.phase, i.metadata.namespace, i.metadata.name))
+    if i.status.phase != "Running":
+      not_running_pods.append(pod_status)
+  # there should not be any pod in non "Running" state
+  assert len(not_running_pods) <= 0
 
 def test_check_etcd():
   '''check etcd pod'''
   print("Testcase: check_etcd")
   corev1api = getCoreV1Api()
+  resp = corev1api.list_namespaced_pod('kube-system')
+  for i in resp.items:
+    if "etcd" in i.metadata.name:
+      phase = i.status.phase
+  assert phase == 'Running'
 
 def test_check_pods():
   '''all pods in all namespaces'''
@@ -134,31 +154,53 @@ def test_check_pods():
   ret = corev1api.list_pod_for_all_namespaces(watch=False)
   print("ret:", ret)
   for i in ret.items:
-    print("%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
+    print("%s\t%s\t%s\t%s" % (i.status.pod_ip, i.status.phase, i.metadata.namespace, i.metadata.name))
+    
 
-def test_check_deployments():
+def test_check_deployments_all_ns():
   '''check deployments'''
   print("Testcase: check_deployments")
-  corev1api = getCoreV1Api()
+  appsv1api = getAppsV1Api()
+  resp = appsv1api.list_deployment_for_all_namespaces()
+  for i in resp.items:
+    print("i.spec.replicas:", i.spec.replicas)
+    print("i.status.replicas", i.status.replicas)
+    assert i.spec.replicas == i.status.replicas
+test_check_deployments_all_ns()
+
+def test_check_deployments_specific_ns():
+  '''check deployments'''
+  global ns
+  print("Testcase: check_deployments")
+  appsv1api = getAppsV1Api()
+  resp = appsv1api.list_namespaced_deployment(ns)
+  for i in resp.items:
+    assert i.spec.replicas == i.status.replicas
 
 def test_check_services():
   '''check services'''
   print("Testcase: check_services")
   corev1api = getCoreV1Api()
-  resp = corev1api.list_service_for_all_namespaces()
-  print("resp:", resp)
+  resp = corev1api.list_service_for_all_namespaces().to_dict()
+  first_service = resp['items'][0]['metadata']['name']
+  # check atleast one service is available
+  assert first_service
 
 def test_check_secrets():
   '''check secrets'''
   print("Testcase: check_secrets")
   corev1api = getCoreV1Api()
-  resp = corev1api.list_secret_for_all_namespaces()
-  print("resp:", resp)
+  resp = corev1api.list_secret_for_all_namespaces().to_dict()
+  first_secret = resp['items'][0]['metadata']['name']
+  # check atleast one secret is available
+  assert first_secret 
 
 def test_check_service_rechability():
   '''port-forward'''
   print("Testcase: check_service_rechability")
   corev1api = getCoreV1Api()
+  resp = corev1api.list_namespaced_service(ns).to_dict()
+  print("resp:",resp)
 
 def test_detect_nonrunning_pods():
   '''pods not running'''
