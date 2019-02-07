@@ -12,14 +12,14 @@ This application should deploy at least a pod/deployment and a configMap/secret.
 
 ## Environment
 ```
-virtualenv --version
-mkdir vir-env
-virtualenv vir-env/k8s-deploy
-cd vir-env/k8s-deploy/bin/
-source activate
+$ virtualenv --version
+$ mkdir vir-env
+$ virtualenv vir-env/k8s-deploy
+$ cd vir-env/k8s-deploy/bin/
+$ source activate
 $ which python
-/Users/pdarshanam/REPOS/PRAVEENDHAC/k8s_deploy.py/vir-env/k8s-deploy/bin/python
-pip3 install requirements.txt
+/Users/pd/REPOS/PRAVEENDHAC/k8s_deploy.py/vir-env/k8s-deploy/bin/python
+$ pip3 install requirements.txt
 ```
 
 ## Usage
