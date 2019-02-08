@@ -23,16 +23,19 @@ def cli():
 def create():
   '''Create k8s Resources'''    
   print("create sys.argv:", sys.argv)
+  pass
 
 @click.group()
 def update():
   '''Update k8s Resources'''    
   click.echo('Update k8s Resources')
+  pass
 
 @click.group()
 def delete():
   '''Delete k8s Resources'''    
   click.echo('Delete k8s Resources')
+  pass
 
 def setClusterContext(kubeconfig):
   '''Loads authentication and cluster information from kube-config file'''
@@ -51,7 +54,7 @@ def initializeAppsV1Api(kubeconfig):
   appsv1api = k8s.client.AppsV1Api()
   return appsv1api
 
-def create_deployment_object(dname,image):
+def create_deployment_object(dname, image, label):
   # Configureate Pod template container
   container = k8s.client.V1Container(
     name="nginx",
@@ -61,18 +64,18 @@ def create_deployment_object(dname,image):
     volume_mounts=[k8s.client.V1VolumeMount(mount_path="/etc/config/config.json",sub_path="config.json", name="pd-configmap-volume-name")])
   # Create and configurate a spec section
   template = k8s.client.V1PodTemplateSpec(
-    metadata= k8s.client.V1ObjectMeta(labels={"app": "nginx"}),
+    metadata= k8s.client.V1ObjectMeta(labels={"app": label}),
     spec=k8s.client.V1PodSpec(containers=[container],volumes=[k8s.client.V1Volume(name="pd-configmap-volume-name", config_map=k8s.client.V1ConfigMapVolumeSource(name="pd-aidt-configmap", default_mode=420))]))
   # Create the specification of deployment
   spec = k8s.client.V1DeploymentSpec(
     replicas=3,
     template=template,
-    selector=k8s.client.V1LabelSelector(match_labels={"app": "nginx"}))
+    selector=k8s.client.V1LabelSelector(match_labels={"app": label}))
   # Instantiate the deployment object
   deployment = k8s.client.V1Deployment(
     api_version="apps/v1",
     kind="Deployment",
-    metadata= k8s.client.V1ObjectMeta(name=dname, labels={"app": "nginx"}),
+    metadata= k8s.client.V1ObjectMeta(name=dname, labels={"app": label}),
     spec=spec)
 
   return deployment
@@ -124,23 +127,25 @@ def delete_deployment(v1_api, dname, ns):
 @click.command()
 @click.option('--name', '-n',help='k8s deployment name')
 @click.option('--image','-i',help='docker image to use')
-@click.option('--namespace', help='namespace for deployment')
+@click.option('--namespace', 'ns', help='namespace for deployment')
+@click.option('--label', help='label for deployment')
 @click.option('--kube-config', '-k', type=click.File('r'), help='kubeconfig file')
-def deployment(name, image, namespace, kube_config):
-  print("deployment sys.argv:", sys.argv)
+def deployment(name, image, ns, label, kube_config):
   '''Deployment operations'''
+  print("deployment sys.argv:", sys.argv)
   v1 = initializeAppsV1Api(kube_config)
-  deployment = create_deployment_object(name, image)
+  deployment = create_deployment_object(name, image, label)
 
-  if not namespace:
-    namespace = "default"
+  if not ns:
+    print('Namespace missing!')
+    sys.exit(-1)
 
   if sys.argv[1] == 'create':
-    create_deployment(v1, deployment, namespace)
+    create_deployment(v1, deployment, ns)
   elif sys.argv[1] == 'update':
-    update_deployment(v1, deployment, name, image, namespace)
+    update_deployment(v1, deployment, name, image, ns)
   elif sys.argv[1] == 'delete':
-    delete_deployment(v1, name, namespace)
+    delete_deployment(v1, name, ns)
   else:
     click.echo('Unknown Command!')
     sys.exit(-1)
@@ -250,7 +255,72 @@ def secret(name, ns, secret_type, kube_config):
 
 @click.command()
 def pod():
-  click.echo('secret....')
+  '''Pod related operations'''
+  click.echo('pod...')
+  pass
+
+def create_service(v1, name, ns, proto, tp, port_con, label):
+  '''creating service'''
+  print("name, ns, proto, tp, port_con, label:",name, ns, proto, tp, port_con, label)
+  body = k8s.client.V1Service()
+
+  # Creating Meta Data
+  metadata = k8s.client.V1ObjectMeta()
+  metadata.name = name 
+  metadata.labels={"app": label}
+
+  body.metadata = metadata
+
+  # Creating spec
+  spec = k8s.client.V1ServiceSpec()
+
+  # Creating Port object
+  port_detail = k8s.client.V1ServicePort(port=int(port_con), target_port=int(tp),protocol=proto)
+  #port_detail.protocol = proto
+  #port_detail.target_port = int(tp)
+  #port_detail.port = int(port_con)
+
+  spec.ports = [ port_detail ]
+  spec.type = 'NodePort'
+  spec.selector = {"app": label}
+
+  body.spec = spec
+  try:
+    api_response = v1.create_namespaced_service(ns, body)
+    print(api_response)
+  except ApiException as e:
+    print("Exception when calling CoreV1Api->create_namespaced_service: %s\n" % e)
+
+def delete_servie():
+  pass
+
+@click.command()
+@click.option('--name', '-n',help='k8s service name')
+@click.option('--namespace', 'ns', help='namespace for deployment')
+@click.option('---protocol', 'proto', help='Protocol')
+@click.option('--target-port','tp',help='Target Port')
+@click.option('--port','-p',help='Port')
+@click.option('--label', help='label for deployment')
+@click.option('--kube-config', '-k', type=click.File('r'), help='kubeconfig file')
+def service(name, ns, proto, tp, port, label, kube_config):
+  '''Service related operations'''
+  click.echo('service...')
+  print("servicesys.argv:", sys.argv)
+  v1 = initializeCoreV1Api(kube_config)
+
+  if not ns:
+    print('Namespace missing!')
+    sys.exit(-1)
+
+  if sys.argv[1] == 'create':
+    create_service(v1, name, ns, proto, tp, port, label)
+  elif sys.argv[1] == 'update':
+    update_service(v1, name, ns, proto, tp, port, label)
+  elif sys.argv[1] == 'delete':
+    delete_service(v1, name, ns)
+  else:
+    click.echo('Unknown Command!')
+    sys.exit(-1)
 
 @click.command()
 @click.option('--set-context', nargs = 0, help='set cluster context')
@@ -270,16 +340,19 @@ create.add_command(deployment)
 create.add_command(configmap)
 create.add_command(secret)
 create.add_command(pod)
+create.add_command(service)
 
 update.add_command(deployment)
 update.add_command(configmap)
 update.add_command(secret)
 update.add_command(pod)
+update.add_command(service)
 
 delete.add_command(deployment)
 delete.add_command(configmap)
 delete.add_command(secret)
 delete.add_command(pod)
+delete.add_command(service)
 
 if __name__ == '__main__':
   cli()

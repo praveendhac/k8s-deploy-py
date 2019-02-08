@@ -99,6 +99,12 @@ Creating Secret
  'metadata': {'annotations': None,
 ....
 ```
+
+### Create Service
+```
+$ src/k8s_deploy.py create service -n nginx-svc-pd --namespace aidt ---protocol TCP --target-port 80 --port 80 --label nginx
+```
+
 ### Check Status
 ```
 $ kubectl get deployments -n aidt
@@ -116,6 +122,15 @@ NAME                  TYPE                                  DATA   AGE
 default-token-vrwzr   kubernetes.io/service-account-token   3      1d
 dpr-secret            kubernetes.io/dockerconfigjson        1      1d
 pd-opaq-secret        opaque                                4      44s
+```
+
+### Access application
+```
+$ kubectl -n aidt port-forward pod/aidt-deployment-6fb7d76557-5kmww 8888:80
+Forwarding from 127.0.0.1:8888 -> 80
+Forwarding from [::1]:8888 -> 80
+Handling connection for 8888
+Handling connection for 8888
 ```
 
 ## Testing
