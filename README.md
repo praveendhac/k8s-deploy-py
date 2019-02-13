@@ -24,8 +24,9 @@ $ pip3 install requirements.txt
 
 ## Usage
 ### Create Deployment
+Create Configmap before creating deployment
 ```
-$ python src/k8s_deploy.py create deployment -n aidt-deployment -i nginx:1.14.2 --namespace aidt
+$ python src/k8s_deploy.py create deployment -n aidt-deployment -i nginx:1.14.2 --namespace aidt --label adit-nginx
 create sys.argv: ['src/k8s_deploy.py', 'create', 'deployment', '-n', 'aidt-deployment', '-i', 'nginx:1.14.2', '--namespace', 'aidt']
 deployment sys.argv: ['src/k8s_deploy.py', 'create', 'deployment', '-n', 'aidt-deployment', '-i', 'nginx:1.14.2', '--namespace', 'aidt']
 Using kubeconfig file from default location
@@ -38,6 +39,8 @@ Deployment created. status='{'available_replicas': None,
  'replicas': None,
  'unavailable_replicas': None,
  'updated_replicas': None}'
+
+python src/k8s_deploy.py create deployment -n test1-deployment -i nginx:1.14.2 --namespace test1 --cfgmapname test1-configmap --label pd-nginx
 ```
 ### Delete Deployment
 ```

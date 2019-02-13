@@ -47,25 +47,32 @@ def setClusterContext(kubeconfig):
     k8s.config.load_kube_config(config_file=None)
 
 def getClusterContext(kubeconfig):
+  '''get current cluster context'''
   click.echo('%s',k8s.config.list_kube_config_contexts())
 
 def initializeAppsV1Api(kubeconfig):
+  '''set kubeconfig or cluster context'''
   setClusterContext(kubeconfig)
   appsv1api = k8s.client.AppsV1Api()
   return appsv1api
 
-def create_deployment_object(dname, image, label):
+def create_deployment_object(dname, image, cfgmap_name, label):
+  '''create Deployment object'''
+  vol_name = dname + "-configmap-volume-name"
+  if not cfgmap_name:
+    click.echo("configmap name missing")
+    sys.exit(-1)
   # Configureate Pod template container
   container = k8s.client.V1Container(
     name="nginx",
     image=image,
     ports=[k8s.client.V1ContainerPort(container_port=80)],
     image_pull_policy="Always",
-    volume_mounts=[k8s.client.V1VolumeMount(mount_path="/etc/config/config.json",sub_path="config.json", name="pd-configmap-volume-name")])
+    volume_mounts=[k8s.client.V1VolumeMount(mount_path="/etc/config/config.json",sub_path="config.json", name=vol_name)])
   # Create and configurate a spec section
   template = k8s.client.V1PodTemplateSpec(
     metadata= k8s.client.V1ObjectMeta(labels={"app": label}),
-    spec=k8s.client.V1PodSpec(containers=[container],volumes=[k8s.client.V1Volume(name="pd-configmap-volume-name", config_map=k8s.client.V1ConfigMapVolumeSource(name="pd-aidt-configmap", default_mode=420))]))
+    spec=k8s.client.V1PodSpec(containers=[container],volumes=[k8s.client.V1Volume(name=vol_name, config_map=k8s.client.V1ConfigMapVolumeSource(name=cfgmap_name, default_mode=420))]))
   # Create the specification of deployment
   spec = k8s.client.V1DeploymentSpec(
     replicas=3,
@@ -126,15 +133,16 @@ def delete_deployment(v1_api, dname, ns):
 
 @click.command()
 @click.option('--name', '-n',help='k8s deployment name')
-@click.option('--image','-i',help='docker image to use')
+@click.option('--image','-i',help='Docker image to use')
 @click.option('--namespace', 'ns', help='namespace for deployment')
+@click.option('--cfgmapname', help='Configmap used for deployment')
 @click.option('--label', help='label for deployment')
 @click.option('--kube-config', '-k', type=click.File('r'), help='kubeconfig file')
-def deployment(name, image, ns, label, kube_config):
+def deployment(name, image, ns, cfgmapname, label, kube_config):
   '''Deployment operations'''
   print("deployment sys.argv:", sys.argv)
   v1 = initializeAppsV1Api(kube_config)
-  deployment = create_deployment_object(name, image, label)
+  deployment = create_deployment_object(name, image, cfgmapname, label)
 
   if not ns:
     print('Namespace missing!')
@@ -151,6 +159,7 @@ def deployment(name, image, ns, label, kube_config):
     sys.exit(-1)
 
 def initializeCoreV1Api(kubeconfig):
+  '''set kubeconfig or cluster context'''
   setClusterContext(kubeconfig)
   corev1api = k8s.client.CoreV1Api()
   return corev1api
@@ -291,7 +300,8 @@ def create_service(v1, name, ns, proto, tp, port_con, label):
   except ApiException as e:
     print("Exception when calling CoreV1Api->create_namespaced_service: %s\n" % e)
 
-def delete_servie():
+def delete_service():
+  '''delete service'''
   pass
 
 @click.command()
@@ -327,6 +337,7 @@ def service(name, ns, proto, tp, port, label, kube_config):
 @click.option('--get-context', nargs = 0, help='get cluster context')
 @click.option('--kube-config', '-k', type=click.File('r'), help='kubeconfig file')
 def cluster(name,image):
+  '''Clueter details'''
   click.echo('cluster....')
   print("cluster sys.argv:", sys.argv)
   click.echo('sc=%s' % set_context)
